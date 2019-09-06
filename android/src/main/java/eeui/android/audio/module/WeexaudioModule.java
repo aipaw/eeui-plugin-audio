@@ -2,8 +2,8 @@ package eeui.android.audio.module;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.AsyncTask;
 
 import com.taobao.weex.annotation.JSMethod;
@@ -92,9 +92,14 @@ public class WeexaudioModule extends WXModule {
         protected Object doInBackground(Object... objects) {
             String url = eeuiPage.rewriteUrl(mWXSDKInstance.getContext(), String.valueOf(objects[0]));
             JSCallback call = (JSCallback) objects[1];
-            MediaPlayer player = MediaPlayer.create(eeui.getApplication(), Uri.parse(url));
+            MediaPlayer player = new MediaPlayer();
             try {
-                player.setDataSource(url);
+                if (url.startsWith("file://assets/")) {
+                    AssetFileDescriptor assetFile = eeui.getApplication().getAssets().openFd(url.substring(14));
+                    player.setDataSource(assetFile.getFileDescriptor(), assetFile.getStartOffset(), assetFile.getLength());
+                }else{
+                    player.setDataSource(url);
+                }
                 player.prepare();
             } catch (IOException e) {
                 e.printStackTrace();

@@ -1,8 +1,8 @@
 package eeui.android.audio.service;
 
 import android.annotation.SuppressLint;
+import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
@@ -53,7 +53,7 @@ public class MusicService {
     }
 
     public void setUrl(String url) {
-        if (this.url == null || this.url.equals(url)) {
+        if (url == null || url.equals(this.url)) {
             return;
         }
         this.url = url;
@@ -61,8 +61,13 @@ public class MusicService {
             if (mPlayer != null) {
                 release();
             }
-            mPlayer = MediaPlayer.create(eeui.getApplication(), Uri.parse(url));
-            mPlayer.setDataSource(url);
+            mPlayer = new MediaPlayer();
+            if (url.startsWith("file://assets/")) {
+                AssetFileDescriptor assetFile = eeui.getApplication().getAssets().openFd(url.substring(14));
+                mPlayer.setDataSource(assetFile.getFileDescriptor(), assetFile.getStartOffset(), assetFile.getLength());
+            }else{
+                mPlayer.setDataSource(url);
+            }
             mPlayer.prepare();
         } catch (Exception e) {
             e.printStackTrace();
