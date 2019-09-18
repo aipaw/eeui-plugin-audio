@@ -38,7 +38,7 @@ public class WeexaudioModule extends WXModule {
 
     @JSMethod
     public void play(String url) {
-        url = eeuiPage.rewriteUrl(mWXSDKInstance.getContext(), url);
+        url = eeuiPage.rewriteUrl(mWXSDKInstance, url);
         Intent in = new Intent(mWXSDKInstance.getContext(), BackService.class);
         in.putExtra("url", url);
         in.putExtra("loop", isBool);
@@ -90,7 +90,7 @@ public class WeexaudioModule extends WXModule {
     private class PlayAsyncTask extends AsyncTask<Object, Integer, Object> {
         @Override
         protected Object doInBackground(Object... objects) {
-            String url = eeuiPage.rewriteUrl(mWXSDKInstance.getContext(), String.valueOf(objects[0]));
+            String url = eeuiPage.rewriteUrl(mWXSDKInstance, String.valueOf(objects[0]));
             JSCallback call = (JSCallback) objects[1];
             MediaPlayer player = new MediaPlayer();
             try {

@@ -31,12 +31,7 @@ WX_EXPORT_METHOD(@selector(setCallback:))
 WX_EXPORT_METHOD(@selector(getDuration:call:))
 
 -(void)play:(NSString*)url{
-    NSString *homePage = nil;
-    if ([weexInstance.viewController isKindOfClass:[eeuiViewController class]]) {
-        eeuiViewController *top = (eeuiViewController *) weexInstance.viewController;
-        homePage = top.url;
-    }
-    url = [DeviceUtil rewriteUrl:url homePage:homePage];
+    url = [DeviceUtil rewriteUrl:url mInstance:weexInstance];
     if(![self.url isEqualToString:url]){
         self.url = url;
         [[audio sharedManager] playFromURL:[NSURL URLWithString:url]];
@@ -131,12 +126,7 @@ WX_EXPORT_METHOD(@selector(getDuration:call:))
 
 -(void)getDuration:(NSString *)url call:(WXModuleCallback)call{
     if (call && url.length > 0) {
-        NSString *homePage = nil;
-        if ([weexInstance.viewController isKindOfClass:[eeuiViewController class]]) {
-            eeuiViewController *top = (eeuiViewController *) weexInstance.viewController;
-            homePage = top.url;
-        }
-        url = [DeviceUtil rewriteUrl:url homePage:homePage];
+        url = [DeviceUtil rewriteUrl:url mInstance:weexInstance];
         dispatch_async(dispatch_get_main_queue(), ^{
             NSUInteger duration = 0;
             AVURLAsset*audioAsset = [AVURLAsset URLAssetWithURL:[NSURL URLWithString:url] options:nil];
