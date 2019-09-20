@@ -30,7 +30,7 @@ public class MusicService {
             setListener();
             statTimer();
             mPlayer.start();
-            EventBus.getDefault().post(new AudioEvent(url, AudioEvent.STATE_STARTPLAY));
+            eventPost(url, AudioEvent.STATE_STARTPLAY);
             return null;
         }
     }
@@ -61,6 +61,7 @@ public class MusicService {
             if (mPlayer != null) {
                 release();
             }
+            mPlayer = null;
             mPlayer = new MediaPlayer();
             if (url.startsWith("file://assets/")) {
                 AssetFileDescriptor assetFile = eeui.getApplication().getAssets().openFd(url.substring(14));
@@ -76,6 +77,31 @@ public class MusicService {
 
     public void play(String url) {
         new PlayAsyncTask().execute(url);
+    }
+
+    public boolean playNext(String url) {
+        if (mPlayer == null) {
+            return false;
+        }
+        if (url == null || url.equals(this.url)) {
+            return false;
+        }
+        this.url = url;
+        try {
+            mPlayer.reset();
+            if (url.startsWith("file://assets/")) {
+                AssetFileDescriptor assetFile = eeui.getApplication().getAssets().openFd(url.substring(14));
+                mPlayer.setDataSource(assetFile.getFileDescriptor(), assetFile.getStartOffset(), assetFile.getLength());
+            }else{
+                mPlayer.setDataSource(url);
+            }
+            mPlayer.prepare();
+            statTimer();
+            mPlayer.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return true;
     }
 
     public void pause() {
@@ -123,48 +149,75 @@ public class MusicService {
             mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mediaPlayer) {
-                    EventBus.getDefault().post(new AudioEvent(url, AudioEvent.STATE_PREPARED));
+                    eventPost(url, AudioEvent.STATE_PREPARED);
                 }
             });
             mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mediaPlayer) {
-                    EventBus.getDefault().post(new AudioEvent(url, AudioEvent.STATE_COMPELETE));
+                    eventPost(url, AudioEvent.STATE_COMPELETE);
                     cancelTimer();
                 }
             });
             mPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
                 @Override
                 public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-                    EventBus.getDefault().post(new AudioEvent(url, AudioEvent.STATE_ERROR));
+                    eventPost(url, AudioEvent.STATE_ERROR);
                     cancelTimer();
+                    if (i == -38) {
+                        error38reStart();
+                    }
                     return false;
                 }
             });
             mPlayer.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
                 @Override
                 public void onSeekComplete(MediaPlayer mediaPlayer) {
-                    EventBus.getDefault().post(new AudioEvent(url, AudioEvent.STATE_SEEK_COMPELETE));
+                    eventPost(url, AudioEvent.STATE_SEEK_COMPELETE);
                 }
             });
             mPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
                 @Override
                 public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
-                    EventBus.getDefault().post(new AudioEvent(url, AudioEvent.STATE_BufferingUpdate));
+                    eventPost(url, AudioEvent.STATE_BufferingUpdate);
                 }
             });
         }
     }
 
-    Handler handler = new Handler() {
+    private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == 1 && mPlayer != null) {
-                EventBus.getDefault().post(new AudioEvent(url, mPlayer.getCurrentPosition(), mPlayer.getDuration(), AudioEvent.STATE_PLAY));
+                eventPost(url, AudioEvent.STATE_PLAY);
             }
             super.handleMessage(msg);
         }
     };
+
+    private int error38reNum = 0;
+    private void error38reStart() {
+        error38reNum++;
+        final int temp = error38reNum;
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (mPlayer == null || temp != error38reNum) {
+                    return;
+                }
+                statTimer();
+                mPlayer.start();
+            }
+        }, 3000);
+    }
+
+    private void eventPost(String url, int state) {
+        if (mPlayer == null) {
+            EventBus.getDefault().post(new AudioEvent(url, state));
+        }else{
+            EventBus.getDefault().post(new AudioEvent(url, mPlayer.getCurrentPosition(), mPlayer.getDuration(), state));
+        }
+    }
 
     public void cancelTimer() {
         if (timer != null)

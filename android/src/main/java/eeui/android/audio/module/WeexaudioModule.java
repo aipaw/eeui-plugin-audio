@@ -39,6 +39,9 @@ public class WeexaudioModule extends WXModule {
     @JSMethod
     public void play(String url) {
         url = eeuiPage.rewriteUrl(mWXSDKInstance, url);
+        if (MusicService.getService().playNext(url)) {
+            return;
+        }
         Intent in = new Intent(mWXSDKInstance.getContext(), BackService.class);
         in.putExtra("url", url);
         in.putExtra("loop", isBool);
