@@ -29,7 +29,11 @@ public class MusicService {
             setUrl(strings[0]);
             setListener();
             statTimer();
-            mPlayer.start();
+            try {
+                mPlayer.start();
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
             eventPost(url, AudioEvent.STATE_STARTPLAY);
             return null;
         }
@@ -114,6 +118,7 @@ public class MusicService {
         if (mPlayer != null) {
             mPlayer.stop();
             mPlayer.release();
+            removeListener();
             mPlayer = null;
             this.url = null;
         }
@@ -185,6 +190,16 @@ public class MusicService {
         }
     }
 
+    public void removeListener() {
+        if (mPlayer != null) {
+            mPlayer.setOnPreparedListener(null);
+            mPlayer.setOnCompletionListener(null);
+            mPlayer.setOnErrorListener(null);
+            mPlayer.setOnSeekCompleteListener(null);
+            mPlayer.setOnBufferingUpdateListener(null);
+        }
+    }
+
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -212,10 +227,14 @@ public class MusicService {
     }
 
     private void eventPost(String url, int state) {
-        if (mPlayer == null) {
-            EventBus.getDefault().post(new AudioEvent(url, state));
-        }else{
-            EventBus.getDefault().post(new AudioEvent(url, mPlayer.getCurrentPosition(), mPlayer.getDuration(), state));
+        try {
+            if (mPlayer == null) {
+                EventBus.getDefault().post(new AudioEvent(url, state));
+            }else{
+                EventBus.getDefault().post(new AudioEvent(url, mPlayer.getCurrentPosition(), mPlayer.getDuration(), state));
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
