@@ -1,0 +1,6 @@
+{
+	"desc": "音频播放、获取音频时长",
+	"requireFormatName": "eeuiAudio",
+	"requireName": "eeui/audio",
+	"title": "音频播放"
+}

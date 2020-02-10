@@ -19,7 +19,7 @@ static WXModuleKeepAliveCallback callback;
 
 @synthesize weexInstance;
 
-WX_PlUGIN_EXPORT_MODULE(audio, audioModule)
+WX_PlUGIN_EXPORT_MODULE(eeuiAudio, audioModule)
 WX_EXPORT_METHOD(@selector(play:))
 WX_EXPORT_METHOD(@selector(pause))
 WX_EXPORT_METHOD(@selector(stop))

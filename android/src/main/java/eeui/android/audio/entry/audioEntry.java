@@ -18,7 +18,7 @@ public class audioEntry {
     public void init(Context content) {
 
         try {
-            WXSDKEngine.registerModule("audio", WeexaudioModule.class);
+            WXSDKEngine.registerModule("eeuiAudio", WeexaudioModule.class);
         } catch (WXException e) {
             e.printStackTrace();
         }
